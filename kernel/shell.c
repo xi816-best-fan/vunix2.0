@@ -15,7 +15,7 @@ void shell() {
 		} else if(strncmp(str, "echo ", 5) == 0) {
 			printf("%s\n", str+5);
 		} else if(strcmp(str, "help") == 0) {
-			printf("exit - exit\necho <str> - echo\nhelp - help\n");
+			printf("exit - exit\necho <str> - echo\nls - list files\ncat <file> - see file\nhelp - help\n");
 		} else if(strcmp(str, "ls") == 0) {
 			for(int i = 0; i < MAX_FILES; i++) {
 				if(strcmp(files[i].name, "\0") != 0) { 
