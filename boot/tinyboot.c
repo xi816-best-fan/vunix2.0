@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #define KERNEL_SIZE_MAX (1024*1024) //1mb
-#define MENU_ENTRIES 3
+#define MENU_ENTRIES 2
 
 typedef struct {
 	uint8_t code[KERNEL_SIZE_MAX];
@@ -15,8 +15,7 @@ typedef struct {
 
 static const char* menu_items[MENU_ENTRIES] = {
 	"Vunix Default",
-	"Vunix Debug mode",
-	"Vunix Recovery",
+	"Vunix Rescue",
 };
 
 static uint8_t fake_disk[2*1024*1024];
@@ -65,10 +64,8 @@ int main() {
 	init_fake_disk();
 	printf("=== TinyBoot ===");
 	printf("\nIniting devices... ");
-	sleep(0.3);
 	printf("done\n");
 	printf("Finding bootable device... ");
-	sleep(0.1);
 	printf("done\n");
 	int choice = show_boot_menu();
 	if(load_kernel(&kernel) != 0) {
@@ -77,6 +74,10 @@ int main() {
 	}
 	printf("\nTransfer control to the kernel with parameters %s\n", kernel.cmdline);
 	printf("Running kernel...\n\n");
-	system("./kernel.elf disk.img");
+	if(choice == 1) {
+		system("./kernel.elf disk.img");
+	} else {
+		system("./kernel.elf rescue");
+	}
 	return 0;
 }

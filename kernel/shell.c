@@ -15,7 +15,7 @@ void shell() {
 		} else if(strncmp(str, "echo ", 5) == 0) {
 			printf("%s\n", str+5);
 		} else if(strcmp(str, "help") == 0) {
-			printf("exit - exit\necho <str> - echo\nls - list files\ncat <file> - see file\nhelp - help\n");
+			printf("exit - exit\necho <str> - echo\nls - list files\ncat <file> - see file\n\nhelp - help\n");
 		} else if(strcmp(str, "ls") == 0) {
 			for(int i = 0; i < MAX_FILES; i++) {
 				if(strcmp(files[i].name, "\0") != 0) { 
@@ -31,10 +31,17 @@ void shell() {
 		} else if(strncmp(str, "cat ", 4) == 0){
 			File* f = sys_open(str+4);
 			if(f == NULL) {
-				printf("/nFile %s doesn`t exist\n");
+				printf("File %s doesn`t exist\n", str+4);
 			} else {
 				printf("%s\n", f->content);
 			}
+		} else if(strncmp(str, "script", 6) == 0) {
+			if(str+6="\0") { 
+				script_shell();
+			} else {
+				script_file(str+6);
+			}
+		}
 		} else {
 			printf("Unknown command: %s\n", str);
 		}

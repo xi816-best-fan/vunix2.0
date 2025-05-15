@@ -59,7 +59,7 @@ void sys_mount(const char* filename) {
         panic("Invalid disk format!");
     }
     
-    printf("Disk mounted. Random ID: %016llx\n", header.random);
+    printf("Disk mounted. Random ID: %016lx\n", header.random);
     
     uint8_t byte;
     char name[256] = {0};
