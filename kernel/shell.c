@@ -35,13 +35,6 @@ void shell() {
 			} else {
 				printf("%s\n", f->content);
 			}
-		} else if(strncmp(str, "script", 6) == 0) {
-			if(str+6="\0") { 
-				script_shell();
-			} else {
-				script_file(str+6);
-			}
-		}
 		} else {
 			printf("Unknown command: %s\n", str);
 		}
