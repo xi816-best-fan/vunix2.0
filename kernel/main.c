@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
 	if(argc < 1) return -1;
 	init_kernel(argc, argv);
 	shell();
-	printf("System will power off right now");
+	puts("System will power off right now");
 	usleep(634891);
-	system("clear");
+	fputs("\033[H\033[2J", stdout);
 	return 0;
 }
