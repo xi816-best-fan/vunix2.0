@@ -2,6 +2,6 @@
 #include "panic.h"
 
 void panic(const char* s) {
-	printf("Kernel panic - not syncing: %s\n", s);
-	for(;;) {}
+  printf("Kernel panic - not syncing: %s\n", s);
+  for(;;) {}
 }

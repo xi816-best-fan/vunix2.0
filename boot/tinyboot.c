@@ -75,9 +75,9 @@ int main() {
 	printf("\nTransfer control to the kernel with parameters %s\n", kernel.cmdline);
 	printf("Running kernel...\n\n");
 	if(choice == 1) {
-		system("./kernel.elf disk.img");
+	  execve("./kernel.elf", (char*[]){"1488", "disk.img", NULL}, NULL);
 	} else {
-		system("./kernel.elf rescue");
+	  execve("./kernel.elf", (char*[]){"1488", "rescue"}, NULL);
 	}
 	return 0;
 }
