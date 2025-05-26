@@ -23,7 +23,7 @@ typedef struct {
 typedef struct {
     char name[256];
     char path[256];
-    char content[1024];
+    char content[8192];
 } File;
 
 typedef struct {
