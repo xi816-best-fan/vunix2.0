@@ -13,12 +13,12 @@
 #define DIR_START  0xFC
 #define DIR_META   0xFB
 
-uint32_t ins_U8(uint8_t* a, uint8_t val, uint32_t offset) {
+uint32_t ins_U8(char* a, uint8_t val, uint32_t offset) {
   a[offset] = val;
   return offset+1;
 }
 
-uint32_t ins_U32(uint8_t* a, uint32_t val, uint32_t offset) {
+uint32_t ins_U32(char* a, uint32_t val, uint32_t offset) {
   a[offset]   = (uint8_t)(val & 0xFF);
   a[offset+1] = (uint8_t)((val >> 8) & 0xFF);
   a[offset+2] = (uint8_t)((val >> 16) & 0xFF);
@@ -26,7 +26,7 @@ uint32_t ins_U32(uint8_t* a, uint32_t val, uint32_t offset) {
   return offset+4;
 }
 
-uint32_t ins_U64(uint8_t* a, uint64_t val, uint32_t offset) {
+uint32_t ins_U64(char* a, uint64_t val, uint32_t offset) {
   a[offset]   = (uint8_t)(val & 0xFF);
   a[offset+1] = (uint8_t)((val >> 8) & 0xFF);
   a[offset+2] = (uint8_t)((val >> 16) & 0xFF);
@@ -65,7 +65,7 @@ uint32_t write_dir(char* buf, char* name, char* path, uint32_t offset) {
   return offset;
 }
 
-uint32_t main(uint32_t argc, char** argv) {
+int32_t main(void) {
   srand(time(NULL));
   FILE* f = fopen("disk.img", "r+b");
   if (!f) {
@@ -80,7 +80,6 @@ uint32_t main(uint32_t argc, char** argv) {
   offs = ins_U32(buf, MAGIC, offs);
   offs = ins_U64(buf, bits, offs);
 
-write_shit:
   offs = write_file(buf, "hello.txt", "/hello", "Hello World!", offs);
   offs = write_dir(buf, "hello", "/hello", offs);
   offs = ins_U8(buf, DISK_END, offs);

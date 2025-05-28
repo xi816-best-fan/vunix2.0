@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void compile(char* command, char* name) {
+  printf("compiling %s\n", name);
+  system(command);
+}
+
 int main() {
-  system("gcc -o vmvuniz-vunix kernel/main.c kernel/init_kernel.c kernel/panic.c kernel/shell.c kernel/vfs.c kernel/rescue.c");
-  system("gcc -o tinyboot boot/tinyboot.c");
-  system("gcc -o create_disk create_disk.c");
+  compile("gcc -pedantic -Wextra -Wall -o mall mall.c", "mall");
+  compile("gcc -pedantic -Wextra -Wall -o vmvuniz-vunix kernel/main.c kernel/init_kernel.c kernel/panic.c kernel/shell.c kernel/vfs.c kernel/rescue.c kernel/exec.c", "vunix");
+  compile("gcc -pedantic -Wextra -Wall -o tinyboot boot/tinyboot.c", "tinyboot");
+  compile("gcc -pedantic -Wextra -Wall -o create_disk create_disk.c", "create_disk");
   return 0;
 }

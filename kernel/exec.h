@@ -9,22 +9,16 @@
 
 typedef struct {
 	uint16_t pc;
-	uint16_t ir;
+	uint32_t ir;
 	uint16_t flags;
 	uint16_t regs[NUM_REGS];
-	uint8_t memory[MEMORY_SIZE]
+	uint8_t memory[MEMORY_SIZE];
 } risc_gc;
-
-typedef struct {
-	risc_gc cpu;
-	int pid;
-} process;
-
-extern int current_pid;
-extern process processes[MAX_PROCESSES];
 
 #define FLAG_ZERO  (1 << 0)
 #define FLAG_CARRY (1 << 1)
 #define FLAG_SIGN  (1 << 2)
+
+int exec(char* filename);
 
 #endif

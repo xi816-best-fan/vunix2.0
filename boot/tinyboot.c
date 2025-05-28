@@ -75,12 +75,12 @@ int main() {
 	printf("\nTransfer control to the kernel with parameters %s\n", kernel.cmdline);
 	printf("Running kernel...\n\n");
 	if(choice == 1) {
-	  if(execve("./kernel.elf", (char*[]){"1488", "disk.img", NULL}, NULL) == -1) {
+	  if(execve("./vmvuniz-vunix", (char*[]){"1488", "disk.img", NULL}, NULL) == -1) {
 	  	printf("vmvuniz-vunix not found");
 	  	return -1;
 	  }
 	} else {
-	  if(execve("./kernel.elf", (char*[]){"1488", "rescue"}, NULL) == -1) {
+	  if(execve("./vmvuniz-vunix", (char*[]){"1488", "rescue"}, NULL) == -1) {
 	  	printf("vmvuniz-vunix not found");
 	  	return -1;
 	  }
