@@ -64,7 +64,7 @@ void sys_mount(const char* filename) {
   uint8_t byte;
   char name[256] = {0};
   char path[256] = {0};
-  char content[1024] = {0};
+  char content[8192] = {0};
 
   while (fread(&byte, 1, 1, disk) == 1) {
     switch (byte) {
@@ -74,7 +74,7 @@ void sys_mount(const char* filename) {
           while (fread(&byte, 1, 1, disk) == 1 && byte != FILE_START) {}
           break;
         }
-        int i = 0;
+        unsigned long int i = 0;
         while (i < sizeof(name)-1 && fread(&byte, 1, 1, disk) == 1 && byte != 0) {
           name[i++] = byte;
         }
@@ -115,7 +115,7 @@ void sys_mount(const char* filename) {
           while (fread(&byte, 1, 1, disk) == 1 && byte != DIR_START) {}
           break;
         }
-        int i = 0;
+        unsigned long int i = 0;
         while (i < sizeof(name)-1 && fread(&byte, 1, 1, disk) == 1 && byte != 0) {
           name[i++] = byte;
         }
