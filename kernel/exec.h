@@ -12,7 +12,7 @@ typedef struct {
 	uint32_t ir;
 	uint16_t flags;
 	uint16_t regs[NUM_REGS];
-	uint8_t memory[MEMORY_SIZE]
+	uint8_t memory[MEMORY_SIZE];
 } risc_gc;
 
 #define FLAG_ZERO  (1 << 0)
