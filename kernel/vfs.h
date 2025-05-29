@@ -17,7 +17,7 @@
 typedef struct {
     uint32_t magic;
     uint64_t random;
-    uint8_t data[16372];
+    uint8_t data[];
 } __attribute__((packed)) DiskHeader;
 
 typedef struct {
