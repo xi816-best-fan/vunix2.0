@@ -94,6 +94,9 @@ int main(int argc, char** argv) {
   }
   char contents[MAX_FILE_SIZE];
   fread(contents, 1, MAX_FILE_SIZE, f);
+  fseek(f, 0, SEEK_END);
+  uint32_t csize = ftell(f);
+  fseek(f, 0, SEEK_SET);
   fclose(f);
 
   // Disk
@@ -104,8 +107,6 @@ int main(int argc, char** argv) {
   }
   unsigned char buf[MAX_DISK_SIZE];
   fread(buf, 1, MAX_DISK_SIZE, f2);
-  fseek(f2, 0, SEEK_END);
-  uint32_t csize = ftell(f2);
   uint32_t offs = 0;
   while (buf[offs] != 0xFF) offs++;
 
