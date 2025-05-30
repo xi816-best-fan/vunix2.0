@@ -157,6 +157,7 @@ int exec(char* filename) {
   for(int i = 0; i < NUM_REGS; i++) {
     cpu.regs[i] = 0;
   }
+  cpu.memory = malloc(MEMORY_SIZE);
   memcpy(cpu.memory, f->content, MEMORY_SIZE);
   printf("Executing %s\n", filename);
   execcycle:
