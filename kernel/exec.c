@@ -5,7 +5,11 @@
 #include <termios.h>
 #include "vfs.h"
 #include "exec.h"
+#include "a.out.h"
 #include "panic.h"
+
+#define TEXTOFFS 0x0000
+#define DATAOFFS 0x0C00
 
 int cpu_read8(risc_gc* cpu, short address) {
   address = address % MEMORY_SIZE;
@@ -153,6 +157,19 @@ void cpu_dump(risc_gc* cpu) {
 }
 
 int exec(char* filename) {
+  risc_gc cpu;
+  cpu.pc = 0;
+  cpu.ir = 0;
+  cpu.flags = 0;
+  for(int i = 0; i < NUM_REGS; i++) {
+    cpu.regs[i] = 0;
+  }
+  cpu.memory = malloc(MEMORY_SIZE);
+  // File* f = sys_open(filename);
+  // if(!f) return -1;
+  // memcpy(cpu.memory, f->content, MEMORY_SIZE);
+  read_AOut(cpu.memory, filename);
+
   struct termios oldt;
   struct termios newt;
   tcgetattr(STDIN_FILENO, &oldt);
@@ -161,25 +178,12 @@ int exec(char* filename) {
   newt.c_lflag &= ~(ICANON | ECHO | /*ISIG |*/ IEXTEN);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-  risc_gc cpu;
-  File* f = sys_open(filename);
-  if(!f) return -1;
-  cpu.pc = 0;
-  cpu.ir = 0;
-  cpu.flags = 0;
-  for(int i = 0; i < NUM_REGS; i++) {
-    cpu.regs[i] = 0;
-  }
-  cpu.memory = malloc(MEMORY_SIZE);
-  memcpy(cpu.memory, f->content, MEMORY_SIZE);
-  printf("Executing %s\n", filename);
   execcycle:
     // printf("PC: %03X\n", cpu.pc);
     int status = cpu_step(&cpu);
     // cpu_dump(&cpu);
     // getchar();
     if(status == 0) {
-      printf("Halted\n");
       tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
       return 0;
     } else if(status == -1) {
