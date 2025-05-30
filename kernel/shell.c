@@ -16,7 +16,7 @@ void shell() {
 		} else if(!strncmp(str, "echo ", 5)) {
 			printf("%s\n", str+5);
 		} else if(!strcmp(str, "help")) {
-			printf("exit\t\texit\necho <str>\techo\nls\t\tlist files\ncat <file>\tshow file contents\nexec\t\texec binary\nhelp\t\thelp\n");
+			printf("  exit\t\texit\n  echo <str>\techo\n  ls\t\tlist files\n  cat <file>\tshow file contents\n  exec\t\texec binary\n  help\t\thelp\n");
 		} else if(!strcmp(str, "ls")) {
 			printf("total %if %id\n", file_count, dir_count);
 			for(int i = 0; i < file_count; i++) {
