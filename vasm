@@ -12,7 +12,7 @@ T_ADDRR = 0x06;
 T_ADDRB = 0x07;
 T_ADDRS = 0x08;
 T_BYTE  = 0x09;
-T_STR   = 0x0a;
+T_STR   = 0x0A;
 T_MCR   = 0x0B;
 T_EOL   = 0x0C;
 T_EOF   = 0x0D;
@@ -81,6 +81,7 @@ def usage():
   print("  -i <file>    Import labels from a file");
   print("  -e           Export labels to the output file");
   print("  -I           Start interactive mode");
+  print("  -v.out       Generate v.out file");
 
 # Lexer:
 def Lex(prog: str, filename: str):
@@ -430,6 +431,7 @@ def main(argc: int, argv: list) -> int:
   argp: int = 1;
   imp_files = [];
   offset = 0x000;
+  gen_vout = 0;
   while (argp < argc):
     match (argv[argp]):
       case "-e":
@@ -448,6 +450,9 @@ def main(argc: int, argv: list) -> int:
         IVasm();
         argp += 1;
         break;
+      case "-v.out":
+        gen_vout = 1;
+        argp += 1;
       case "-h":
         usage();
         return 0;
@@ -469,13 +474,14 @@ def main(argc: int, argv: list) -> int:
     exit(tokens);
   ast, labs = Parse(tokens, progname, exportmode);
   labs = OffsetLabs(labs, offset);
-  # PrintLabs(labs);
   if (exportmode):
     ExportLabs(progname, labs, outname);
     exit(1);
   for imp_file in imp_files:
     labs = ImportLabs(progname, labs, imp_file);
-  c, exitcode = CompileRiscGC(ast, labs);
+  co, exitcode = CompileRiscGC(ast, labs);
+  c = [b"\x88\x14\x00\x00\x00\x20\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"+co, co][gen_vout];
+  print(f"resulting {len(c)} bytes total");
   with open(outname, "wb") as fl:
     fl.write(c);
 
