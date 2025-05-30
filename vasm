@@ -10,18 +10,19 @@ T_REG   = 0x03;
 T_ID    = 0x05;
 T_ADDRR = 0x06;
 T_ADDRB = 0x07;
-T_BYTE  = 0x08;
-T_STR   = 0x09;
-T_MCR   = 0x0A;
-T_EOL   = 0x0B;
-T_EOF   = 0x0C;
+T_ADDRS = 0x08;
+T_BYTE  = 0x09;
+T_STR   = 0x0a;
+T_MCR   = 0x0B;
+T_EOL   = 0x0C;
+T_EOF   = 0x0D;
 
 ASTINS   = 0x00;
 ASTBYTES = 0x01;
 ASTRES   = 0x02;
 ASTEOF   = 0x03;
 
-HUMAN_TOKS = ["inst", "int", "label", "reg", "id", "addr", "[addr]", "byte", "string", "mcr", "eol", "eof"];
+HUMAN_TOKS = ["inst", "int", "label", "reg", "id", "addr", "[addr]", "[reg+reg+imm]", "byte", "string", "mcr", "eol", "eof"];
 HUMAN_AST  = ["INST", "BYTES", "RESERVE", "EOF"];
 
 LET    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
@@ -30,7 +31,7 @@ DIG    = "0123456789";
 WHI    = " \r\0\t,";
 DIGEXT = "0123456789ABCDEF";
 KEY2   = [
-  "nop", "mov", "add", "sub", "and", "or", "xor", "jmp", "jz", "jnz", "imm", "hlt"
+  "nop", "mov", "add", "sub", "and", "or", "xor", "jmp", "jz", "jnz", "int", "hlt", "ld", "st"
 ];
 KEYR   = {
   "r0": 0x00,  "r1": 0x01,  "r2": 0x02,  "r3": 0x03,  "r4": 0x04,  "r5": 0x05,  "r6": 0x06,  "r7": 0x07,
@@ -155,6 +156,29 @@ def Lex(prog: str, filename: str):
       pos += 1;
       toks.append((T_STR, buf.encode()));
       buf = "";
+    elif (prog[pos] == "["):
+      pos += 1;
+      while (prog[pos] != "]"):
+        buf += prog[pos];
+        pos += 1;
+      pos += 1;
+      f = buf.replace(" ", "").split("+");
+      buf = dict();
+      nregs = 1;
+      for j in f:
+        if (j[0] == "r"):
+          buf[f"r{nregs}"] = int(j[1:]);
+          nregs += 1;
+        else:
+          buf["i"] = int(j);
+      if ("i" not in buf):
+        buf["i"] = 0;
+      if ("r1" not in buf):
+        buf["r1"] = 0;
+      if ("r2" not in buf):
+        buf["r2"] = 0;
+      toks.append((T_ADDRS, buf));
+      buf = "";
     elif (prog[pos] == "'"):
       pos += 1;
       if (prog[pos] == "$"):
@@ -236,9 +260,22 @@ def RemEmpty(prog: str):
 ParseInst = lambda toks, b, pos, pc: \
   ((ASTINS, "mov-rr", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "mov") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
    (ASTINS, "mov-ri", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "mov") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_INT)) else
+   (ASTINS, "mov-rl", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "mov") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ID)) else
    (ASTINS, "add-rrri", (toks[pos+1][1], toks[pos+2][1], toks[pos+3][1], toks[pos+4][1]), pos + 5) if ((b == "add") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG) and (toks[pos+3][0] == T_REG) and (toks[pos+4][0] == T_INT)) else
    (ASTINS, "sub-rrri", (toks[pos+1][1], toks[pos+2][1], toks[pos+3][1], toks[pos+4][1]), pos + 5) if ((b == "sub") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG) and (toks[pos+3][0] == T_REG) and (toks[pos+4][0] == T_INT)) else
-   (ASTINS, "jnz-r", (toks[pos+1][1]), pos + 2) if ((b == "jnz") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "and-rrr", (toks[pos+1][1], toks[pos+2][1], toks[pos+3][1]), pos + 4) if ((b == "and") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG) and (toks[pos+3][0] == T_REG)) else
+   (ASTINS, "or-rrr", (toks[pos+1][1], toks[pos+2][1], toks[pos+3][1]), pos + 4) if ((b == "or") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG) and (toks[pos+3][0] == T_REG)) else
+   (ASTINS, "xor-rrr", (toks[pos+1][1], toks[pos+2][1], toks[pos+3][1]), pos + 4) if ((b == "xor") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG) and (toks[pos+3][0] == T_REG)) else
+   (ASTINS, "not-rrr", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "not") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_REG)) else
+   (ASTINS, "jmp-i", (toks[pos+1][1]), pos + 2) if ((b == "jmp") and (toks[pos+1][0] == T_INT)) else
+   (ASTINS, "jmp-l", (toks[pos+1][1]), pos + 2) if ((b == "jmp") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "jz-i", (toks[pos+1][1]), pos + 2) if ((b == "jz") and (toks[pos+1][0] == T_INT)) else
+   (ASTINS, "jz-l", (toks[pos+1][1]), pos + 2) if ((b == "jz") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "jnz-i", (toks[pos+1][1]), pos + 2) if ((b == "jnz") and (toks[pos+1][0] == T_INT)) else
+   (ASTINS, "jnz-l", (toks[pos+1][1]), pos + 2) if ((b == "jnz") and (toks[pos+1][0] == T_ID)) else
+   (ASTINS, "int-i", (toks[pos+1][1]), pos + 2) if ((b == "int") and (toks[pos+1][0] == T_INT)) else
+   (ASTINS, "ld-rs", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "ld") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ADDRS)) else
+   (ASTINS, "st-rs", (toks[pos+1][1], toks[pos+2][1]), pos + 3) if ((b == "st") and (toks[pos+1][0] == T_REG) and (toks[pos+2][0] == T_ADDRS)) else
    (ASTINS, "nop", (), pos + 1)                                 if ((b == "nop")) else
    (ASTINS, "hlt", (), pos + 1)                                 if ((b == "hlt")) else
    (print("vasm: unknown instruction", toks[pos]) and exit(1))
@@ -318,13 +355,26 @@ get_inst3regfull = lambda opcode,r1,r2,r3,imm12: (opcode << 24) | (r1 << 20) | (
 get_inst3reg     = lambda opcode,r1,r2,r3,imm12: As32(get_inst3regfull(opcode,r1,r2,r3,imm12));
 
 CompileInst = lambda prog, b, labels, pos: \
-  ((get_inst3reg(0x00, 0, 0, 0, 0), pos+1)               if (b[1] == "nop") else
-   (get_inst3reg(0x01, b[2][0], b[2][1], 0, 0), pos+1)   if (b[1] == "mov-rr") else
-   (get_inst3reg(0x02, b[2][0], 0, 0, b[2][1]), pos+1)   if (b[1] == "mov-ri") else
-   (get_inst3reg(0x03, *b[2]), pos+1)                    if (b[1] == "add-rrri") else
-   (get_inst3reg(0x04, *b[2]), pos+1)                    if (b[1] == "sub-rrri") else
-   (get_inst3reg(0x0F, 0, 0, 0, labels[b[2][0]]), pos+1) if (b[1] == "jnz-l") else
-   (get_inst3reg(0x12, 0, 0, 0, 0), pos+1)               if (b[1] == "hlt") else
+  ((get_inst3reg(0x00, 0, 0, 0, 0), pos+1)                                          if (b[1] == "nop") else
+   (get_inst3reg(0x01, b[2][0], b[2][1], 0, 0), pos+1)                              if (b[1] == "mov-rr") else
+   (get_inst3reg(0x02, b[2][0], 0, 0, b[2][1]), pos+1)                              if (b[1] == "mov-ri") else
+   (get_inst3reg(0x02, b[2][0], 0, 0, labels[b[2][1]]), pos+1)                      if (b[1] == "mov-rl") else
+   (get_inst3reg(0x03, *b[2]), pos+1)                                               if (b[1] == "add-rrri") else
+   (get_inst3reg(0x04, *b[2]), pos+1)                                               if (b[1] == "sub-rrri") else
+   (get_inst3reg(0x05, *b[2], 0), pos+1)                                            if (b[1] == "and-rrr") else
+   (get_inst3reg(0x06, *b[2], 0), pos+1)                                            if (b[1] == "or-rrr") else
+   (get_inst3reg(0x07, *b[2], 0), pos+1)                                            if (b[1] == "xor-rrr") else
+   (get_inst3reg(0x08, *b[2], 0, 0), pos+1)                                         if (b[1] == "not-rr") else
+   (get_inst3reg(0x09, b[2][0], b[2][1]["r1"], b[2][1]["r2"], b[2][1]["i"]), pos+1) if (b[1] == "ld-rs") else
+   (get_inst3reg(0x0A, b[2][0], b[2][1]["r1"], b[2][1]["r2"], b[2][1]["i"]), pos+1) if (b[1] == "st-rs") else
+   (get_inst3reg(0x0B, 0, 0, 0, b[2][0]), pos+1)                                    if (b[1] == "jmp-i") else
+   (get_inst3reg(0x0B, 0, 0, 0, labels[b[2]]), pos+1)                               if (b[1] == "jmp-l") else
+   (get_inst3reg(0x0D, 0, 0, 0, b[2][0]), pos+1)                                    if (b[1] == "jz-i") else
+   (get_inst3reg(0x0D, 0, 0, 0, labels[b[2]]), pos+1)                               if (b[1] == "jz-l") else
+   (get_inst3reg(0x0F, 0, 0, 0, b[2][0]), pos+1)                                    if (b[1] == "jnz-i") else
+   (get_inst3reg(0x0F, 0, 0, 0, labels[b[2]]), pos+1)                               if (b[1] == "jnz-l") else
+   (get_inst3reg(0x11, 0, 0, 0, b[2]), pos+1)                                       if (b[1] == "int-i") else
+   (get_inst3reg(0x12, 0, 0, 0, 0), pos+1)                                          if (b[1] == "hlt") else
    [print("vasm: unknown compilation node %s" % b[1]), (tuple(), 0x1_00_0000)][1]
   );
 
@@ -432,3 +482,4 @@ def main(argc: int, argv: list) -> int:
   return 0;
 
 sys.exit(main(len(sys.argv), sys.argv));
+
