@@ -18,14 +18,15 @@ void shell() {
 		} else if(!strcmp(str, "help")) {
 			printf("exit - exit\necho <str> - echo\nls - list files\ncat <file> - see file\nexec - exec binary\nhelp - help\n");
 		} else if(!strcmp(str, "ls")) {
-			for(int i = 0; i < MAX_FILES; i++) {
-				if(strcmp(files[i].name, "\0") != 0) { 
-					printf("%s ", files[i].name);
+			printf("total %if %id\n", file_count, dir_count);
+			for(int i = 0; i < file_count; i++) {
+				if(files[i].name[0] != '\0') {
+					printf("file %i %s\n", i, files[i].name);
 				}
 			} 
-			for(int i = 0; i < MAX_DIRS; i++) {
-				if(strcmp(files[i].name, "\0") == 0) {
-					printf("%s ", dirs[i].name);
+			for(int i = 0; i < dir_count; i++) {
+				if(dirs[i].name[0] != '\0') {
+					printf("dir  %i %s/\n", i, dirs[i].name);
 				}
 			}
 			putchar('\n');
