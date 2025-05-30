@@ -84,7 +84,6 @@ int cpu_step(risc_gc* cpu) {
          break;
 
        case 0x09: //LD R1, [R2+R3+imm]
-	 // printf("\033[92mLD R%d, [R%d+R%d+0x%03X]\033[0m\n", reg1, reg2, reg3, imm);
          cpu->regs[(int)reg1] = cpu_read8(cpu, cpu->regs[(int)reg2]+cpu->regs[(int)reg3]+imm);
          break;
 
@@ -158,6 +157,7 @@ int exec(char* filename) {
   for(int i = 0; i < NUM_REGS; i++) {
     cpu.regs[i] = 0;
   }
+  cpu.memory = malloc(MEMORY_SIZE);
   memcpy(cpu.memory, f->content, MEMORY_SIZE);
   printf("Executing %s\n", filename);
   execcycle:
