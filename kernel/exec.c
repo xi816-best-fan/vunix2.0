@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <termios.h>
 #include "vfs.h"
 #include "exec.h"
 #include "panic.h"
@@ -120,6 +121,9 @@ int cpu_step(risc_gc* cpu) {
       switch(imm) {
         case 0x01: //PUTCHAR SUKA
           putchar(cpu->regs[1]);
+          break;
+        case 0x02: //GETCHAR SUKA
+          cpu->regs[1] = getchar();
       }
       break;
 
@@ -149,6 +153,14 @@ void cpu_dump(risc_gc* cpu) {
 }
 
 int exec(char* filename) {
+  struct termios oldt;
+  struct termios newt;
+  tcgetattr(STDIN_FILENO, &oldt);
+  memcpy(&newt, &oldt, sizeof(oldt));
+  newt.c_iflag &= ~(IXON);
+  newt.c_lflag &= ~(ICANON | ECHO | /*ISIG |*/ IEXTEN);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
   risc_gc cpu;
   File* f = sys_open(filename);
   if(!f) return -1;
@@ -168,9 +180,12 @@ int exec(char* filename) {
     // getchar();
     if(status == 0) {
       printf("Halted\n");
+      tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
       return 0;
     } else if(status == -1) {
+      tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
       return -1;
     }
     goto execcycle;
 }
+
