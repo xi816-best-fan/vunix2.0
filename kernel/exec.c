@@ -172,12 +172,12 @@ int cpu_step(risc_gc* cpu) {
       cpu->regs[reg1] = pop(cpu);
       break;
 
-    case 0x17: // JSR R1+IMM16
+    case 0x17: // CALL R1+IMM16
       push(cpu, cpu->pc+4);
       cpu->pc = cpu->regs[reg1] + ((cpu->regs[reg3] << 12) | imm);
       break;
 
-    case 0x18: // RTR
+    case 0x18: // RET
       cpu->pc = pop(cpu);
       break;
 
