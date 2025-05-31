@@ -21,8 +21,29 @@ int cpu_read(risc_gc* cpu, short address) {
   return (cpu->memory[address] << 24) | (cpu->memory[address+1] << 16) | (cpu->memory[address+2] << 8) | cpu->memory[address+3];
 }
 
+uint16_t cpu_read16(risc_gc* cpu, short address) {
+  address = address % MEMORY_SIZE;
+  return (cpu->memory[address] << 8) | cpu->memory[address+1];
+}
+
 void cpu_write(risc_gc* cpu, short address, char value) {
   cpu->memory[address % MEMORY_SIZE] = value;
+}
+
+void cpu_write16(risc_gc* cpu, short address, uint16_t value) {
+  cpu->memory[address % MEMORY_SIZE] = value >> 8;
+  cpu->memory[address % MEMORY_SIZE + 1] = value;
+}
+
+void push(risc_gc* cpu, uint16_t val) {
+  cpu->regs[15] -= 2;
+  cpu_write(cpu, cpu->regs[15], val);
+}
+
+uint16_t pop(risc_gc* cpu) {
+  uint16_t a = cpu_read16(cpu, cpu->regs[15]);
+  cpu->regs[15] += 2;
+  return a;
 }
 
 void update_flags(risc_gc* cpu, short result) {
@@ -133,6 +154,40 @@ int cpu_step(risc_gc* cpu) {
 
     case 0x12: //HLT
       return 0;
+      break;
+
+    case 0x13: // SHL R1, R2, R3, IMM
+      cpu->regs[reg1] <<= cpu->regs[reg2] + cpu->regs[reg3] + imm;
+      break;
+
+    case 0x14: // SHR R1, R2, R3, IMM
+      cpu->regs[reg1] >>= cpu->regs[reg2] + cpu->regs[reg3] + imm;
+      break;
+
+    case 0x15: // PSH R1+IMM
+      push(cpu, reg1+imm);
+      break;
+
+    case 0x16: // POP R1
+      cpu->regs[reg1] = pop(cpu);
+      break;
+
+    case 0x17: // CALL R1+IMM16
+      push(cpu, cpu->pc+4);
+      cpu->pc = cpu->regs[reg1] + ((cpu->regs[reg3] << 12) | imm);
+      break;
+
+    case 0x18: // RET
+      cpu->pc = pop(cpu);
+      break;
+
+    case 0x19: // LW R1, [R2+R3+IMM12]
+      cpu->regs[(int)reg1] = cpu_read16(cpu, cpu->regs[(int)reg2]+cpu->regs[(int)reg3]+imm);
+      break;
+
+     case 0x1A: //SW [R1+R2+imm], R3
+       cpu_write16(cpu, cpu->regs[(int)reg1]+cpu->regs[(int)reg2]+imm, cpu->regs[(int)reg3]);
+       break;
 
     default:
       printf("Unknown command: 0x%02X at 0x%04X\n", opcode, cpu->pc);
