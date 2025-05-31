@@ -181,6 +181,14 @@ int cpu_step(risc_gc* cpu) {
       cpu->pc = pop(cpu);
       break;
 
+    case 0x19: // LW R1, [R2+R3+IMM12]
+      cpu->regs[(int)reg1] = cpu_read16(cpu, cpu->regs[(int)reg2]+cpu->regs[(int)reg3]+imm);
+      break;
+
+     case 0x1A: //SW [R1+R2+imm], R3
+       cpu_write16(cpu, cpu->regs[(int)reg1]+cpu->regs[(int)reg2]+imm, cpu->regs[(int)reg3]);
+       break;
+
     default:
       printf("Unknown command: 0x%02X at 0x%04X\n", opcode, cpu->pc);
       fflush(stdout);
